@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include "Config.h"
+#include "HttpServer.h"
 
 extern "C" {
 void app_main() {
@@ -15,6 +16,14 @@ void app_main() {
     } else {
         printf("WiFi connection failed.\n");
     }
+
+    HttpServer server;
+
+    if (!server.start()) {
+        ESP_LOGE("Main", "Failed to start the HTTP server");
+        return;
+    }
+
 
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
