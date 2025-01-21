@@ -3,12 +3,24 @@
 
 #include "esp_http_server.h"
 
+/**
+ * @brief A class for managing an HTTP server.
+ *
+ */
 class HttpServer {
 public:
     HttpServer();
 
+    /**
+     * @brief Starts the HTTP server.
+     *
+     * @return true if the server starts successfully, false if an error occurred while starting.
+     */
     bool start();
 
+    /**
+     * @brief Stops the HTTP server.
+     */
     void stop();
 
 private:
