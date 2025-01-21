@@ -11,7 +11,6 @@
 /**
  * @class WiFiManager
  * @brief Manages WiFi connections for the ESP32.
- *
  */
 class WiFiManager {
 public:
