@@ -2,14 +2,15 @@
 #define HTTP_SERVER_H
 
 #include "esp_http_server.h"
+#include "LoggerTag.h"
 
 /**
  * @brief A class for managing an HTTP server.
  *
  */
-class HttpServer {
+class HttpServer : protected LoggerTag {
 public:
-    HttpServer();
+    HttpServer() : LoggerTag("HttpServer") {}
 
     /**
      * @brief Starts the HTTP server.
@@ -24,7 +25,7 @@ public:
     void stop();
 
 private:
-    httpd_handle_t serverHandle;
+    httpd_handle_t serverHandle{};
 
     static esp_err_t handleRoot(httpd_req_t *req);
 

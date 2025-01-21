@@ -1,25 +1,21 @@
 #include "HttpServer.h"
 #include "esp_log.h"
 
-static const char *TAG = "HttpServer";
-
-HttpServer::HttpServer() : serverHandle(nullptr) {}
-
 bool HttpServer::start() {
     serverHandle = initializeServer();
     if (serverHandle == nullptr) {
-        ESP_LOGE(TAG, "Failed to start HTTP server");
+        ESP_LOGE(getTag(), "Failed to start HTTP server");
         return false;
     }
 
-    ESP_LOGI(TAG, "HTTP server started successfully");
+    ESP_LOGI(getTag(), "HTTP server started successfully");
     return true;
 }
 
 void HttpServer::stop() {
     if (serverHandle) {
         httpd_stop(serverHandle);
-        ESP_LOGI(TAG, "HTTP server stopped");
+        ESP_LOGI(getTag(), "HTTP server stopped");
         serverHandle = nullptr;
     }
 }
@@ -29,7 +25,7 @@ httpd_handle_t HttpServer::initializeServer() {
 
     httpd_handle_t server = nullptr;
     if (httpd_start(&server, &config) != ESP_OK) {
-        ESP_LOGE(TAG, "Error starting server!");
+        ESP_LOGE(getTag(), "Error starting server!");
         return nullptr;
     }
 
@@ -41,7 +37,7 @@ httpd_handle_t HttpServer::initializeServer() {
     };
 
     if (httpd_register_uri_handler(server, &rootUri) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register root URI handler");
+        ESP_LOGE(getTag(), "Failed to register root URI handler");
         httpd_stop(server);
         return nullptr;
     }
