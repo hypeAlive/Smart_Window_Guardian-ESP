@@ -10,22 +10,22 @@ static const char *TAG = "example";
 static void read_hello_txt(void)
 {
 
-    ESP_LOGI(TAG, "Reading hello.txt");
+    ESP_LOGI(TAG, "Reading index.html");
 
     // Open for reading hello.txt
-    FILE* f = fopen("/spiffs/hello.txt", "r");
+    FILE* f = fopen("/spiffs/index.html", "r");
     if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open hello.txt");
+        ESP_LOGE(TAG, "Failed to open index.html");
         return;
     }
 
-    char buf[64];
+    char buf[256];
     memset(buf, 0, sizeof(buf));
     fread(buf, 1, sizeof(buf), f);
     fclose(f);
 
     // Display the read contents from the file
-    ESP_LOGI(TAG, "Read from hello.txt: %s", buf);
+    ESP_LOGI(TAG, "Read from index.html: %s", buf);
 }
 
 extern "C" {

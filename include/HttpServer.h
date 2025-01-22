@@ -27,7 +27,7 @@ public:
 private:
     httpd_handle_t serverHandle{};
 
-    static esp_err_t handleRoot(httpd_req_t *req);
+    esp_err_t handleRoot(httpd_req_t *req);
 
     httpd_handle_t initializeServer();
 };
