@@ -8,7 +8,17 @@
 
 ---
 
-## Einrichtung des Projekts
+## Ausführung
+
+```bash
+pio run -t uploadfs
+```
+
+```bash
+pio run -t upload -t monitor
+```
+
+
 
 ---
 
