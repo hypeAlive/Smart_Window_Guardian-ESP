@@ -100,24 +100,6 @@ bool HttpServer::registerRoutes(httpd_handle_t server) {
     return success;
 }
 
-esp_err_t HttpServer::handleRoot(httpd_req_t *req) {
-    ESP_LOGI("3", "3");
-
-    // Falls Öffnen fehlschlägt, sende eine Fehlermeldung
-    const char *error_response =
-            "<!DOCTYPE html>"
-            "<html>"
-            "<head><title>Error</title></head>"
-            "<body><h1>Failed to open index.html</h1></body>"
-            "</html>";
-    ESP_LOGI("4", "4");
-    httpd_resp_set_type(req, "text/html");
-    ESP_LOGI("5", "5");
-    httpd_resp_send(req, error_response, HTTPD_RESP_USE_STRLEN);
-    ESP_LOGI("6", "6");
-    return ESP_OK;
-}
-
 void HttpServer::use(const std::string &baseUri, Router &router) {
     routers.emplace_back(baseUri, &router);
 }

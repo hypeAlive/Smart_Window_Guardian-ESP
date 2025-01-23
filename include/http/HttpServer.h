@@ -20,8 +20,6 @@ private:
 
     std::vector<std::pair<std::string, Router *>> routers;
 
-    esp_err_t handleRoot(httpd_req_t *req);
-
     httpd_handle_t initializeServer();
 
     bool registerRoutes(httpd_handle_t server);
