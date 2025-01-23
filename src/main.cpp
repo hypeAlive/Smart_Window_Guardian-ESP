@@ -9,6 +9,7 @@
 static Logger logger("Main");
 
 Router apiRouter;
+Router webRouter;
 
 void initSpiffs() {
     logger.logi("Initializing SPIFFS");
@@ -42,24 +43,12 @@ void initSpiffs() {
     }
 }
 
-void printRoutes() {
-    // Hole alle Routen aus apiRouter
-    std::vector<httpd_uri_t> routes = apiRouter.getRoutes();
-
-    // Iteriere über die Route-Liste und drucke die Details
-    ESP_LOGI("", "Registered Routes:\n");
-    for (const auto &route : routes) {
-        ESP_LOGI("", "URI: %s | Method: %d\n", route.uri, route.method);
-    }
-}
-
 
 void initHttpServer() {
     HttpServer server;
 
-    printRoutes();
-
     server.use("/api", apiRouter);
+    server.use("/", webRouter);
 
     server.start();
 }

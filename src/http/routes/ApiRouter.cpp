@@ -1,12 +1,10 @@
 #include "http/Router.h"
-#include "esp_log.h"
 
 extern Router apiRouter;
 
 namespace {
     struct ApiRoutesInitializer {
         ApiRoutesInitializer() {
-          ESP_LOGI("t", "Initializing API routes");
             apiRouter.addRoute("", HTTP_GET, [](httpd_req_t *req) {
                 const char *html_response = R"(
                     <!DOCTYPE html>
@@ -22,12 +20,8 @@ namespace {
                     </html>
                     )";
 
-                // Setze den Content-Type auf HTML
                 httpd_resp_set_type(req, "text/html");
-
-                // Sende die HTML-Antwort
                 httpd_resp_send(req, html_response, HTTPD_RESP_USE_STRLEN);
-
                 return ESP_OK;
               });
             apiRouter.addRoute("/state", HTTP_GET, [](httpd_req_t *req) {
