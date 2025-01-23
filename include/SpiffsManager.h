@@ -23,8 +23,5 @@ private:
 
     SpiffsManager() : Logger("SpiffsManager"){}
 
-    SpiffsManager(const SpiffsManager&) = delete;
-    SpiffsManager& operator=(const SpiffsManager&) = delete;
-
 };
 #endif //SPIFFSMANAGER_H

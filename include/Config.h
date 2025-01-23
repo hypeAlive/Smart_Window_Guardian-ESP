@@ -13,24 +13,33 @@ public:
      *
      * @return A reference to the singleton instance of the Config class.
      */
-    static Config& getInstance();
+    static Config& getInstance() {
+        static Config instance;
+        return instance;
+    }
 
     /**
      * @brief Retrieves the SSID of the Wi-Fi network.
      *
      * @return A reference to a std::string containing the SSID.
      */
-    const std::string& getWifiSSID() const;
+    const std::string& getWifiSSID() const {
+        return wifiSsid;
+    }
 
     /**
      * @brief Retrieves the Wi-Fi network password.
      *
      * @return A reference to a std::string containing the Wi-Fi password.
      */
-    const std::string& getWifiPassword() const;
+    const std::string& getWifiPassword() const {
+        return wifiPassword;
+    }
 
 private:
-    Config();
+    Config()
+    :  wifiSsid(WIFI_SSID), wifiPassword(WIFI_PASSWORD) {
+    }
 
     std::string wifiSsid;
     std::string wifiPassword;
