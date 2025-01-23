@@ -26,7 +26,7 @@ void HttpServer::stop() {
     esp_err_t res = httpd_stop(serverHandle);
 
     if (res != ESP_OK) {
-        loge("Failed to stop. Error code: %s", std::to_string(res));
+        loge("Failed to stop");
         return;
     }
 
