@@ -62,14 +62,12 @@ void app_main() {
     WiFiManager wifiManager;
     wifiManager.connect(config.getWifiSSID(), config.getWifiPassword());
 
-    if (wifiManager.isConnected()) {
-        printf("WiFi connected successfully!\n");
-    } else {
-        printf("WiFi connection failed.\n");
+    if (!wifiManager.isConnected()) {
+        printf("WiFi connection failed. Shutting down.\n");
+        return;
     }
 
     initHttpServer();
-
 
     for (;;) {
         vTaskDelay(pdMS_TO_TICKS(1000));
