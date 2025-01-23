@@ -2,54 +2,33 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include "Config.h"
-#include "HttpServer.h"
+#include "http/HttpServer.h"
 #include "esp_spiffs.h"
+#include "esp_log.h"
 
-static const char *TAG = "example";
+static Logger logger("Main");
 
-static void read_hello_txt(void)
-{
+Router apiRouter;
 
-    ESP_LOGI(TAG, "Reading index.html");
-
-    // Open for reading hello.txt
-    FILE* f = fopen("/spiffs/index.html", "r");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open index.html");
-        return;
-    }
-
-    char buf[256];
-    memset(buf, 0, sizeof(buf));
-    fread(buf, 1, sizeof(buf), f);
-    fclose(f);
-
-    // Display the read contents from the file
-    ESP_LOGI(TAG, "Read from index.html: %s", buf);
-}
-
-extern "C" {
-void app_main() {
-    ESP_LOGI(TAG, "Initializing SPIFFS");
+void initSpiffs() {
+    logger.logi("Initializing SPIFFS");
 
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/spiffs",
         .partition_label = NULL,
         .max_files = 5,
         .format_if_mount_failed = false
-      };
+    };
 
-    // Use settings defined above to initialize and mount SPIFFS filesystem.
-    // Note: esp_vfs_spiffs_register is an all-in-one convenience function.
     esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
-            ESP_LOGE(TAG, "Failed to mount or format filesystem");
+            logger.loge("Failed to mount or format filesystem");
         } else if (ret == ESP_ERR_NOT_FOUND) {
-            ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+            logger.loge("Failed to find SPIFFS partition");
         } else {
-            ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+            logger.loge("Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
         }
         return;
     }
@@ -57,19 +36,39 @@ void app_main() {
     size_t total = 0, used = 0;
     ret = esp_spiffs_info(NULL, &total, &used);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+        logger.loge("Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
     } else {
-        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+        logger.loge("Partition size: total: %d, used: %d", total, used);
     }
+}
 
-    /* The following calls demonstrate reading files from the generated SPIFFS
-     * image. The images should contain the same files and contents as the data directory.
-     */
+void printRoutes() {
+    // Hole alle Routen aus apiRouter
+    std::vector<httpd_uri_t> routes = apiRouter.getRoutes();
 
-    // Read and display the contents of a small text file (hello.txt)
-    read_hello_txt();
+    // Iteriere über die Route-Liste und drucke die Details
+    ESP_LOGI("", "Registered Routes:\n");
+    for (const auto &route : routes) {
+        ESP_LOGI("", "URI: %s | Method: %d\n", route.uri, route.method);
+    }
+}
 
-    Config& config = Config::getInstance();
+
+void initHttpServer() {
+    HttpServer server;
+
+    printRoutes();
+
+    server.use("/api", apiRouter);
+
+    server.start();
+}
+
+extern "C" {
+void app_main() {
+    initSpiffs();
+
+    Config &config = Config::getInstance();
 
     WiFiManager wifiManager;
     wifiManager.connect(config.getWifiSSID(), config.getWifiPassword());
@@ -80,12 +79,7 @@ void app_main() {
         printf("WiFi connection failed.\n");
     }
 
-    HttpServer server;
-
-    if (!server.start()) {
-        ESP_LOGE("Main", "Failed to start the HTTP server");
-        return;
-    }
+    initHttpServer();
 
 
     for (;;) {

@@ -7,16 +7,16 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include <cstring>
-#include "LoggerTag.h"
+#include "Logger.h"
 
 /**
  * @class WiFiManager
  * @brief Manages WiFi connections for the ESP32.
  */
-class WiFiManager : protected LoggerTag {
+class WiFiManager : protected Logger {
 public:
-    WiFiManager() : LoggerTag("WiFiManager") {init();}
-    ~WiFiManager();
+    WiFiManager() : Logger("WiFiManager") {init();}
+    ~WiFiManager() override;
 
     /**
      * @brief Connects to a WiFi network using the provided credentials.

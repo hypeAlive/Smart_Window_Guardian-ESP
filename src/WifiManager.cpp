@@ -36,14 +36,14 @@ void WiFiManager::init() {
         this, nullptr
     ));
 
-    ESP_LOGI(getTag(), "WiFi initialized.");
+    logi("WiFi initialized.");
 }
 
 WiFiManager::~WiFiManager() {
     esp_wifi_stop();
     esp_wifi_deinit();
     vEventGroupDelete(wifi_event_group);
-    ESP_LOGI(getTag(), "WiFi deinitialized.");
+    logi("WiFi deinitialized.");
 }
 
 void WiFiManager::connect(const std::string& ssid, const std::string& password) const {
@@ -53,16 +53,16 @@ void WiFiManager::connect(const std::string& ssid, const std::string& password) 
     strncpy(reinterpret_cast<char*>(wifi_config.sta.password), password.c_str(), sizeof(wifi_config.sta.password));
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-    ESP_LOGI(getTag(), "Connecting to WiFi: %s", ssid.c_str());
+    logi("Connecting to WiFi: %s", ssid.c_str());
 
     ESP_ERROR_CHECK(esp_wifi_start());
-    ESP_LOGI(getTag(), "WiFi started.");
+    logi("WiFi started.");
 
     ESP_ERROR_CHECK(esp_wifi_connect());
 
     xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, pdFALSE, pdTRUE, portMAX_DELAY);
 
-    ESP_LOGI(getTag(), "Successfully connected to WiFi.");
+    logi("Successfully connected to WiFi.");
 }
 
 bool WiFiManager::isConnected() const {
@@ -73,15 +73,15 @@ bool WiFiManager::isConnected() const {
 void WiFiManager::eventHandler(esp_event_base_t event_base, int32_t event_id, void* event_data) const {
     if (event_base == WIFI_EVENT) {
         if (event_id == WIFI_EVENT_STA_START) {
-            ESP_LOGI(getTag(), "WiFi STA started.");
+            logi("WiFi STA started.");
         } else if (event_id == WIFI_EVENT_STA_DISCONNECTED) {
-            ESP_LOGW(getTag(), "Disconnected from WiFi. Retrying...");
+            logw("Disconnected from WiFi. Retrying...");
             esp_wifi_connect();
             xEventGroupClearBits(wifi_event_group, WIFI_CONNECTED_BIT);
         }
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
-        ESP_LOGI(getTag(), "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        logi("Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
