@@ -1,3 +1,4 @@
 .idea
-.env
+esp/.env
+esp/data/*
 .pio
