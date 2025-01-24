@@ -1,0 +1,4 @@
+#ifndef STATEMANAGER_H
+#define STATEMANAGER_H
+
+#endif //STATEMANAGER_H
