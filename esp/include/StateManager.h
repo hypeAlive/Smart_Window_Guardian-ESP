@@ -1,5 +1,8 @@
+#include <vector>
+
 #include "Logger.h"
 #include "sensor/UltrasonicSensor.h"
+#include "sensor/SensorSaveState.h"
 
 #ifndef STATEMANAGER_H
 #define STATEMANAGER_H
@@ -30,14 +33,24 @@ public:
         return currentState;
     }
 
+    const SensorSaveState* getCurrentSaveState() const {
+        return currentSaveState;
+    }
+
+    bool setup(SensorState state, uint32_t duration);
+
 private:
 
     StateManager()
-      : Logger("StateManager"), sensor(nullptr), currentState(State::NOT_INITIALIZED){}
+      : Logger("StateManager"),
+        sensor(nullptr),
+        currentState(State::NOT_INITIALIZED),
+        currentSaveState(nullptr){}
 
     UltrasonicSensor* sensor;
-
     State currentState;
+    std::vector<SensorSaveState> sensorSaveStates;
+    SensorSaveState* currentSaveState;
 
     void setState(State newState) {
         currentState = newState;

@@ -1,5 +1,45 @@
 #include "sensor/Ultrasonicsensor.h"
 
+#include <algorithm>
+#include <vector>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+float calculateMedian(std::vector<float>& distances) {
+    std::ranges::sort(distances);
+    size_t size = distances.size();
+    if (size % 2 == 0) {
+        // Median für gerade Anzahl Elemente
+        return (distances[size / 2 - 1] + distances[size / 2]) / 2.0f;
+    } else {
+        // Median für ungerade Anzahl Elemente
+        return distances[size / 2];
+    }
+}
+
+float UltrasonicSensor::measureMedianDistance(uint32_t duration_seconds) {
+    uint32_t startTime = esp_timer_get_time();
+    uint32_t duration_us = duration_seconds * 1000000;
+
+    std::vector<float> validDistances;
+
+    while ((esp_timer_get_time() - startTime) < duration_us) {
+        float distance = measureDistance();
+        if (validateResult(distance)) {
+            validDistances.push_back(distance);
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+
+    if (validDistances.empty()) {
+        logw("UltrasonicSensor", "Keine gültigen Messwerte gefunden.");
+        return -1.0f;
+    }
+
+    return calculateMedian(validDistances);
+}
+
+
 float UltrasonicSensor::calculateDistance(uint32_t duration_us) const {
     return (static_cast<float>(duration_us) * 0.0343f) / 2.0f;
 }
@@ -50,7 +90,6 @@ float UltrasonicSensor::measureDistance() {
 
     float distance = calculateDistance(duration);
 
-    // Validierungsbereich für sinnvolle Messungen
     if (validateResult(distance)) {
         logi("Measured distance: %.2f cm", distance);
         return distance;

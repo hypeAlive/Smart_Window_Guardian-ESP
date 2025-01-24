@@ -24,6 +24,8 @@ public:
     void initPins();
 
     float measureDistance();
+
+    float measureMedianDistance(uint32_t duration_seconds);
 };
 
 #endif // ULTRASOUND_SENSOR_H
