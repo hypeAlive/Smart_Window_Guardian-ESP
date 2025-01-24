@@ -1,4 +1,5 @@
 #include "http/Router.h"
+#include "StateManager.h"
 
 extern Router apiRouter;
 
@@ -12,7 +13,10 @@ namespace {
               });
 
             apiRouter.addRoute("/state", HTTP_GET, [](httpd_req_t *req) {
-                const char *json_response = R"({"state": "ok"})";
+                State state = StateManager::getInstance().getCurrentState();
+                const char *state_str = stateToString(state);
+                char json_response[100];
+                snprintf(json_response, sizeof(json_response), R"({"state": "%s"})", state_str);
                 httpd_resp_set_type(req, "application/json");
                 httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
                 return ESP_OK;

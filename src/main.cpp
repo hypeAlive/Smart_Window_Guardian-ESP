@@ -1,19 +1,13 @@
 #include "WiFiManager.h"
-#include <dirent.h>
 #include <sys/types.h>
 #include "Config.h"
 #include "http/HttpServer.h"
 #include "SpiffsManager.h"
-#include "esp_log.h"
-#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
-#include "esp_rom_sys.h"
-#include "esp_timer.h"
-#include "Ultrasonicsensor.h"
-
-
+#include "sensor/Ultrasonicsensor.h"
+#include "StateManager.h"
 
 #define TRIG_PIN GPIO_NUM_15
 #define ECHO_PIN GPIO_NUM_4
@@ -51,6 +45,11 @@ void app_main() {
     }
 
     UltrasonicSensor sensor(TRIG_PIN, ECHO_PIN);
+
+    if (!StateManager::getInstance().init(&sensor)) {
+        logger.loge("Failed to initialize state manager. Restarting...");
+        esp_restart();
+    }
 
     while (true) {
         sensor.measureDistance();

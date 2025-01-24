@@ -1,4 +1,4 @@
-#include "Ultrasonicsensor.h"
+#include "sensor/Ultrasonicsensor.h"
 
 float UltrasonicSensor::calculateDistance(uint32_t duration_us) const {
     return (static_cast<float>(duration_us) * 0.0343f) / 2.0f;
