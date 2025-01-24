@@ -6,7 +6,7 @@ extern Router apiRouter;
 namespace {
     struct ApiRoutesInitializer {
         ApiRoutesInitializer() {
-            apiRouter.addRoute("", HTTP_GET, [](httpd_req_t *req) {
+            apiRouter.addRoute("/?", HTTP_GET, [](httpd_req_t *req) {
                 httpd_resp_set_type(req, "text/html");
                 httpd_resp_send(req, "Window Guardian ESP API", HTTPD_RESP_USE_STRLEN);
                 return ESP_OK;

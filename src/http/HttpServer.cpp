@@ -39,6 +39,7 @@ httpd_handle_t HttpServer::initializeServer() {
     logi("Initializing...");
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.uri_match_fn = httpd_uri_match_wildcard;
 
     config.server_port = 80;
     config.task_priority = tskIDLE_PRIORITY + 5;
