@@ -10,6 +10,8 @@ enum class SensorState {
   OFF
 };
 
+const char* sensorStateToString(SensorState state);
+
 class SensorSaveState {
   public:
 
@@ -26,6 +28,10 @@ class SensorSaveState {
 
     SensorState getState() const {
       return state;
+    }
+
+    float getValue() const {
+      return value;
     }
 
   private:

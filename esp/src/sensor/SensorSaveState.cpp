@@ -3,13 +3,17 @@
 
 #include "esp_log.h"
 
-const char* SensorSaveState::stateToString() const {
+const char* sensorStateToString(SensorState state) {
     switch (state) {
         case SensorState::ON: return "ON";
         case SensorState::OFF: return "OFF";
         case SensorState::MID: return "MID";
         default: return "UNKNOWN";
     }
+}
+
+const char* SensorSaveState::stateToString() const {
+    return sensorStateToString(state);
 }
 
 SensorState SensorSaveState::stringToState(const std::string& str) {

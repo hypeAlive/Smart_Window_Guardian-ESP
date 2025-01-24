@@ -24,6 +24,15 @@ namespace {
                 return ESP_OK;
             });
 
+            apiRouter.addRoute("/reset", HTTP_GET, [](httpd_req_t *req) {
+                StateManager& stateManager = StateManager::getInstance();
+                stateManager.deleteSetup();
+
+                const char* response = "StateManager reset successfully.";
+                httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
+                return ESP_OK;
+            });
+
             apiRouter.addRoute("/save-state", HTTP_GET, [](httpd_req_t *req) {
                 const SensorSaveState* state = StateManager::getInstance().getCurrentSaveState();
 
@@ -36,6 +45,29 @@ namespace {
                 snprintf(json_response, sizeof(json_response), R"({"state": "%s"})", state_str);
                 httpd_resp_set_type(req, "application/json");
                 httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
+                return ESP_OK;
+            });
+
+            apiRouter.addRoute("/setup-needs", HTTP_GET, [](httpd_req_t *req) {
+                StateManager& stateManager = StateManager::getInstance();
+
+                auto missingStates = stateManager.getSetupNeeds();
+
+                cJSON *needsArray = cJSON_CreateArray();
+                for (const auto& state : missingStates) {
+                    cJSON_AddItemToArray(needsArray, cJSON_CreateString(sensorStateToString(state)));
+                }
+
+                cJSON *response = cJSON_CreateObject();
+                cJSON_AddItemToObject(response, "needs", needsArray);
+
+                const char *responseStr = cJSON_Print(response);
+                httpd_resp_set_type(req, "application/json");
+                httpd_resp_send(req, responseStr, HTTPD_RESP_USE_STRLEN);
+
+                cJSON_Delete(response);
+                free((void*)responseStr);
+
                 return ESP_OK;
             });
 
