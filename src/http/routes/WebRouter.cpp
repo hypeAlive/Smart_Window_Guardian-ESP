@@ -27,6 +27,8 @@ namespace {
                     httpd_resp_set_type(req, "text/css");
                 } else if (uri.ends_with(".js")) {
                     httpd_resp_set_type(req, "application/javascript");
+                } else if (uri.ends_with(".ico")) {
+                    httpd_resp_set_type(req, "image/x-icon");
                 } else {
                     httpd_resp_set_type(req, "application/octet-stream");
                 }
