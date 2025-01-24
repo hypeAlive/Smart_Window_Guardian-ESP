@@ -1,4 +1,6 @@
 #include "SpiffsManager.h"
+#include "esp_spiffs.h"
+#include <functional>
 
 bool SpiffsManager::init() {
     logi("Initializing SPIFFS");

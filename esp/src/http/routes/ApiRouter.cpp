@@ -1,6 +1,5 @@
 #include "http/Router.h"
 #include "StateManager.h"
-#include "sensor/SensorSaveState.h"
 #include "cJSON.h"
 
 extern Router apiRouter;

@@ -33,6 +33,8 @@ public:
         sensor = ultrasonicSensor;
         setState(State::INITIALIZED);
         logi("Initialized successfully.");
+        loadSaveStateNVS();
+        checkForStartLoop();
         return true;
     }
 
@@ -67,6 +69,10 @@ private:
     void calculateMiddlePoints();
     void evaluationTask();
     static void evaluationTaskWrapper(void* params);
+    void deleteSaveStateNVS();
+    void saveSaveStateNVS();
+    void loadSaveStateNVS();
+    void checkForStartLoop();
 
     UltrasonicSensor* sensor;
     State currentState;

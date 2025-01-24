@@ -1,9 +1,7 @@
 #include "Logger.h"
-#include "esp_spiffs.h"
-#include <functional>
+
 #include <memory>
 #include <string>
-#include <vector>
 
 #ifndef SPIFFSMANAGER_H
 #define SPIFFSMANAGER_H
