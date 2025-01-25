@@ -2,4 +2,5 @@
 esp/.env
 esp/data/*
 !esp/data/.gitkeep
+node_modules
 .pio
