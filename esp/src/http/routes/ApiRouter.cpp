@@ -4,9 +4,51 @@
 
 extern Router apiRouter;
 
+static esp_err_t sendSetupNeedsResponse(httpd_req_t *req) {
+    ESP_LOGI("API", "Preparing setup needs response");
+    StateManager& stateManager = StateManager::getInstance();
+
+    // Abrufen der "fehlenden Zustände"
+    auto missingStates = stateManager.getSetupNeeds();
+
+    cJSON *needsArray = cJSON_CreateArray();
+    for (const auto& state : missingStates) {
+        // Einzelne fehlende Zustände zu JSON-Array hinzufügen
+        cJSON_AddItemToArray(needsArray, cJSON_CreateString(sensorStateToString(state)));
+    }
+
+    // JSON-Antwort erstellen
+    cJSON *response = cJSON_CreateObject();
+    cJSON_AddItemToObject(response, "needs", needsArray);
+
+    const char *responseStr = cJSON_Print(response);
+    ESP_LOGI("API", "Sending response: %s", responseStr);
+
+    // HTTP-Header setzen und JSON-Daten senden
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_send(req, responseStr, HTTPD_RESP_USE_STRLEN);
+
+    // Speicher freigeben, um Leaks zu vermeiden
+    cJSON_Delete(response);
+    free((void*)responseStr);
+
+    return ESP_OK;
+}
+
 namespace {
     struct ApiRoutesInitializer {
         ApiRoutesInitializer() {
+            apiRouter.addRoute("/?*", HTTP_OPTIONS, [](httpd_req_t *req) {
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE, PUT");
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+
+                httpd_resp_send(req, "", HTTPD_RESP_USE_STRLEN);
+
+                return ESP_OK;
+            });
+
             apiRouter.addRoute("/?", HTTP_GET, [](httpd_req_t *req) {
                 httpd_resp_set_type(req, "text/html");
                 httpd_resp_send(req, "Window Guardian ESP API", HTTPD_RESP_USE_STRLEN);
@@ -27,7 +69,8 @@ namespace {
                 StateManager& stateManager = StateManager::getInstance();
                 stateManager.deleteSetup();
 
-                const char* response = "StateManager reset successfully.";
+                const char* response = "{\"message\": \"StateManager reset successfully.\"}";
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
                 httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
                 return ESP_OK;
             });
@@ -48,26 +91,8 @@ namespace {
             });
 
             apiRouter.addRoute("/setup-needs", HTTP_GET, [](httpd_req_t *req) {
-                StateManager& stateManager = StateManager::getInstance();
-
-                auto missingStates = stateManager.getSetupNeeds();
-
-                cJSON *needsArray = cJSON_CreateArray();
-                for (const auto& state : missingStates) {
-                    cJSON_AddItemToArray(needsArray, cJSON_CreateString(sensorStateToString(state)));
-                }
-
-                cJSON *response = cJSON_CreateObject();
-                cJSON_AddItemToObject(response, "needs", needsArray);
-
-                const char *responseStr = cJSON_Print(response);
-                httpd_resp_set_type(req, "application/json");
-                httpd_resp_send(req, responseStr, HTTPD_RESP_USE_STRLEN);
-
-                cJSON_Delete(response);
-                free((void*)responseStr);
-
-                return ESP_OK;
+                ESP_LOGI("API", "Handling GET /setup-needs");
+                return sendSetupNeedsResponse(req);
             });
 
             apiRouter.addRoute("/save-state", HTTP_POST, [](httpd_req_t *req) {
@@ -109,15 +134,9 @@ namespace {
                     return ESP_FAIL;
                 }
 
-                bool setupSuccess = StateManager::getInstance().setup(state, 5);
+                StateManager::getInstance().setup(state, 5);
 
-                if (setupSuccess) {
-                    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
-                    return ESP_OK;
-                } else {
-                    httpd_resp_send(req, "FAIL", HTTPD_RESP_USE_STRLEN);
-                    return ESP_FAIL;
-                }
+                return sendSetupNeedsResponse(req);
             });
         }
     };

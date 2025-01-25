@@ -3,6 +3,9 @@ import CardComponent from "@/components/CardComponent.vue";
 import IconWindowOpen from "@/components/icons/IconWindowOpen.vue";
 import IconWindowMid from "@/components/icons/IconWindowMid.vue";
 import IconWindowClosed from "@/components/icons/IconWindowClosed.vue";
+import Spinner from "@/components/Spinner.vue";
+import SetupCompleteComponent from "@/components/SetupCompleteComponent.vue";
+import SetupNeedsComponent from "@/components/SetupNeedsComponent.vue";
 </script>
 
 <template>
@@ -14,44 +17,59 @@ import IconWindowClosed from "@/components/icons/IconWindowClosed.vue";
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
-      <!-- Karte: Fenster Offen -->
-      <CardComponent
-          :icon="IconWindowOpen"
-          title="Fenster Offen"
-          description="Öffnen Sie das Fenster komplett und drücken Sie 'Kalibrierung starten', um den offenen Zustand einzurichten."
-          buttonText="Kalibrierung starten"
-          @click="handleStep(1)"
-      />
+    <Spinner v-if="loading" :size="'w-12 h-12'"/>
 
-      <!-- Karte: Fenster Kipp -->
-      <CardComponent
-          :icon="IconWindowMid"
-          title="Fenster Gekippt"
-          description="Kippen Sie das Fenster und drücken Sie 'Kalibrierung starten', um den gekippten Zustand einzurichten."
-          buttonText="Kalibrierung starten"
-          @click="handleStep(2)"
-      />
+    <div v-else>
 
-      <!-- Karte: Fenster Geschlossen -->
-      <CardComponent
-          :icon="IconWindowClosed"
-          title="Fenster Geschlossen"
-          description="Schließen Sie das Fenster komplett und drücken Sie 'Kalibrierung starten', um den geschlossenen Zustand einzurichten."
-          buttonText="Kalibrierung starten"
-          @click="handleStep(3)"
-      />
+      <SetupCompleteComponent v-if="isSetupEmpty" />
+
+      <SetupNeedsComponent v-else :setup-needs="setupNeeds"/>
+
     </div>
+
   </div>
 </template>
 
 <script>
 export default {
   name: "WindowGuardianSetup",
+  data() {
+    return {
+      loading: true,
+      setupNeeds: [],
+      error: ""
+    }
+  },
+  computed: {
+    isSetupEmpty() {
+      return this.setupNeeds.length === 0;
+    },
+  },
+  mounted() {
+    this.fetchNeeds();
+  },
   methods: {
     handleStep(step) {
       console.log(`Kalibrierung für Zustand ${step} gestartet.`);
     },
+    async fetchNeeds() {
+      try {
+        const response = await fetch("/api/setup-needs", {
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Fehler beim Abrufen: ${response.status}`);
+        }
+
+        this.setupNeeds = (await response.json())["needs"];
+
+      } catch (err) {
+        this.error = err.message;
+      } finally {
+        this.loading = false;
+      }
+    }
   },
 };
 </script>
