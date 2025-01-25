@@ -4,15 +4,59 @@
 #include <vector>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
+
+volatile uint32_t start_time = 0;
+volatile uint32_t end_time = 0;
+volatile bool measurement_done = false;
+
+void IRAM_ATTR echoISR(void* arg) {
+    if (gpio_get_level(static_cast<gpio_num_t>(reinterpret_cast<int>(arg))) == 1) {
+        start_time = esp_timer_get_time();
+    } else {
+        end_time = esp_timer_get_time();
+        measurement_done = true;
+    }
+}
+
+float UltrasonicSensor::measureDistance() {
+    measurement_done = false;
+
+    gpio_set_level(triggerPin, 0);
+    esp_rom_delay_us(2);
+    gpio_set_level(triggerPin, 1);
+    esp_rom_delay_us(10);
+    gpio_set_level(triggerPin, 0);
+
+    gpio_set_intr_type(echoPin, GPIO_INTR_ANYEDGE);
+    gpio_isr_handler_add(echoPin, echoISR, (void*)echoPin);
+
+    const uint32_t timeout_us = 38000; // wenn länger als nötig -> fail
+    uint32_t start_timeout = esp_timer_get_time();
+
+    while (!measurement_done) {
+        if ((esp_timer_get_time() - start_timeout) > timeout_us) {
+            gpio_isr_handler_remove(echoPin);
+            return -1.0f;
+        }
+    }
+
+    gpio_isr_handler_remove(echoPin);
+
+    uint32_t duration = end_time - start_time;
+
+    float distance = calculateDistance(duration);
+
+    return validateResult(distance) ? distance : -1.0f;
+}
+
 
 float calculateMedian(std::vector<float>& distances) {
     std::ranges::sort(distances);
     size_t size = distances.size();
     if (size % 2 == 0) {
-        // Median für gerade Anzahl Elemente
         return (distances[size / 2 - 1] + distances[size / 2]) / 2.0f;
     } else {
-        // Median für ungerade Anzahl Elemente
         return distances[size / 2];
     }
 }
@@ -41,8 +85,10 @@ float UltrasonicSensor::measureMedianDistance(uint32_t duration_seconds) {
 
 
 float UltrasonicSensor::calculateDistance(uint32_t duration_us) const {
-    return (static_cast<float>(duration_us) * 0.0343f) / 2.0f;
+    constexpr float conversionFactor = 0.0343f * 0.5f;
+    return static_cast<float>(duration_us) * conversionFactor;
 }
+
 
 void UltrasonicSensor::initPins() {
     gpio_config_t io_conf;
@@ -59,43 +105,18 @@ void UltrasonicSensor::initPins() {
     gpio_config(&io_conf);
 
     logi("Pins initialized: Trigger(%d), Echo(%d)", triggerPin, echoPin);
+
+    static bool isrInstalled = false;
+    if (!isrInstalled) {
+        gpio_install_isr_service(0);
+        isrInstalled = true;
+    }
+
+    gpio_isr_handler_add(echoPin, echoISR, (void *)echoPin);
+
 }
 
 bool UltrasonicSensor::validateResult(float distance) const {
   return distance >= 2.0f && distance <= 400.0f;
-}
-
-float UltrasonicSensor::measureDistance() {
-
-    gpio_set_level(triggerPin, 0);
-    esp_rom_delay_us(2);
-    gpio_set_level(triggerPin, 1);
-    esp_rom_delay_us(10);
-    gpio_set_level(triggerPin, 0);
-
-    uint32_t start_time = 0;
-    uint32_t end_time = 0;
-
-    // start time measurement
-    while (gpio_get_level(echoPin) == 0) {
-        start_time = esp_timer_get_time();
-    }
-
-    // wait until time measurement is done
-    while (gpio_get_level(echoPin) == 1) {
-        end_time = esp_timer_get_time();
-    }
-
-    uint32_t duration = end_time - start_time;
-
-    float distance = calculateDistance(duration);
-
-    if (validateResult(distance)) {
-        logi("Measured distance: %.2f cm", distance);
-        return distance;
-    } else {
-        logi("Invalid measurement: Out of range!");
-        return -1.0f;
-    }
 }
 

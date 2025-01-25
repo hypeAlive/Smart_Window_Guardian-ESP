@@ -73,6 +73,7 @@ private:
     void saveSaveStateNVS();
     void loadSaveStateNVS();
     void checkForStartLoop();
+    SensorSaveState* calculateNewSaveState(float currentDistance);
 
     UltrasonicSensor* sensor;
     State currentState;

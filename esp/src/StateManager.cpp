@@ -1,5 +1,6 @@
 #include "StateManager.h"
 #include "nvs.h"
+#include "esp_task_wdt.h"
 
 #include <algorithm>
 #include <unordered_set>
@@ -21,7 +22,7 @@ void StateManager::saveSaveStateNVS() {
         return;
     }
 
-    for (const auto& saveState : sensorSaveStates) {
+    for (const auto &saveState: sensorSaveStates) {
         std::string keyState = "state_" + std::to_string(index);
         std::string keyValue = "value_" + std::to_string(index);
 
@@ -100,7 +101,7 @@ void StateManager::loadSaveStateNVS() {
     nvs_close(nvsHandle);
 }
 
-const char* stateToString(State state) {
+const char *stateToString(State state) {
     switch (state) {
         case State::NOT_INITIALIZED: return "NOT_INITIALIZED";
         case State::INITIALIZED: return "INITIALIZED";
@@ -134,7 +135,7 @@ void StateManager::deleteSaveStateNVS() {
 void StateManager::calculateMiddlePoints() {
     std::lock_guard<std::mutex> lock(saveStateMutex);
 
-    std::sort(sensorSaveStates.begin(), sensorSaveStates.end(), [](const SensorSaveState& a, const SensorSaveState& b) {
+    std::sort(sensorSaveStates.begin(), sensorSaveStates.end(), [](const SensorSaveState &a, const SensorSaveState &b) {
         return a.getValue() < b.getValue();
     });
 
@@ -154,7 +155,7 @@ bool StateManager::setup(SensorState state, uint32_t duration) {
     }
 
     auto it = std::ranges::find_if(sensorSaveStates,
-                                   [state](const SensorSaveState& savedState) {
+                                   [state](const SensorSaveState &savedState) {
                                        return savedState.getState() == state;
                                    });
 
@@ -205,13 +206,13 @@ void StateManager::startSaveStateEvalLoop() {
     }
 
     xTaskCreate(
-            &StateManager::evaluationTaskWrapper,
-            "SaveStateEvaluation",
-            4096,
-            this,
-            1,
-            &taskHandle
-        );
+        &StateManager::evaluationTaskWrapper,
+        "SaveStateEvaluation",
+        4096,
+        this,
+        2,
+        &taskHandle
+    );
 
     logi("SaveState evaluation task started.");
 }
@@ -223,9 +224,7 @@ void StateManager::deleteSetup() {
         logi("Deleting evaluation task...");
         vTaskDelete(taskHandle);
         taskHandle = nullptr;
-    }
-
-    {
+    } {
         std::lock_guard<std::mutex> lock(saveStateMutex);
         sensorSaveStates.clear();
         middlePoints.clear();
@@ -240,47 +239,56 @@ void StateManager::deleteSetup() {
     logi("StateManager reset complete.");
 }
 
-void StateManager::evaluationTaskWrapper(void* params) {
-    StateManager* instance = static_cast<StateManager*>(params);
-    instance->evaluationTask();
-}
+void StateManager::evaluationTaskWrapper(void *params) {
+    StateManager *instance = static_cast<StateManager *>(params);
 
-void StateManager::evaluationTask() {
     while (true) {
-        if (!sensor) {
-            loge("Sensor not initialized!");
-            vTaskDelete(nullptr);
-            return;
-        }
-
-        float currentDistance = sensor->measureDistance();
-
-        {
-            std::lock_guard<std::mutex> lock(saveStateMutex);
-
-            for (size_t i = 0; i < sensorSaveStates.size(); ++i) {
-                if (i == 0 && currentDistance <= middlePoints[i]) {
-                    // Wenn Wert kleiner oder gleich dem ersten Mittelwert ist, wähle den ersten Zustand
-                    currentSaveState = &sensorSaveStates[i];
-                    break;
-                } else if (i == sensorSaveStates.size() - 1 && currentDistance > middlePoints[i - 1]) {
-                    // Wenn Wert größer ist als der letzte Mittelwert, wähle den letzten Zustand
-                    currentSaveState = &sensorSaveStates[i];
-                    break;
-                } else if (currentDistance > middlePoints[i - 1] && currentDistance <= middlePoints[i]) {
-                    // Wenn Wert zwischen zwei Mittelpunkten liegt, wähle den passenden Zustand
-                    currentSaveState = &sensorSaveStates[i];
-                    break;
-                }
-            }
-        }
-
-        logi("Updated current save state. %s", sensorStateToString(currentSaveState->getState()));
-
+        instance->evaluationTask();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
+void StateManager::evaluationTask() {
+    if (!sensor) {
+        loge("Sensor not initialized!");
+        vTaskDelete(nullptr);
+        return;
+    }
+
+    float currentDistance = sensor->measureDistance();
+
+    SensorSaveState* newSaveState = calculateNewSaveState(currentDistance);
+
+    if (newSaveState && newSaveState != currentSaveState) {
+        {
+            std::lock_guard<std::mutex> lock(saveStateMutex);
+            currentSaveState = newSaveState;
+        }
+
+        logi("Updated current save state. %s", sensorStateToString(currentSaveState->getState()));
+    }
+
+}
+
+SensorSaveState* StateManager::calculateNewSaveState(float currentDistance) {
+    const auto it = std::ranges::lower_bound(middlePoints, currentDistance);
+
+    size_t index = std::distance(middlePoints.begin(), it);
+
+    if (index == 0) {
+        return &sensorSaveStates[0];
+    }
+
+    if (index == middlePoints.size()) {
+        return &sensorSaveStates[sensorSaveStates.size() - 1];
+    }
+
+    if (currentDistance > middlePoints[index - 1] && currentDistance <= middlePoints[index]) {
+        return &sensorSaveStates[index];
+    }
+
+    return nullptr;
+}
 
 
 std::unordered_set<SensorState> StateManager::getSetupNeeds() const {
@@ -290,7 +298,7 @@ std::unordered_set<SensorState> StateManager::getSetupNeeds() const {
         SensorState::MID
     };
 
-    for (const auto& saveState : sensorSaveStates) {
+    for (const auto &saveState: sensorSaveStates) {
         requiredStates.erase(saveState.getState());
     }
 
