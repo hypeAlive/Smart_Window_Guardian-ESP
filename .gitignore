@@ -3,4 +3,7 @@ esp/.env
 esp/data/*
 !esp/data/.gitkeep
 node_modules
+dist
+.secrets
+.variables
 .pio

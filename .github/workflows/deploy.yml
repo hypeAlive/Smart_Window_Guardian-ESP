@@ -1,0 +1,96 @@
+name: window guardian pub deploy
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  install:
+    name: install
+    outputs:
+      version: ${{ steps.save-version.outputs.GEN_VERSION }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Get Version
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          VERSION_SPACES=$(npx semantic-release | grep -oP 'Published release \K.*? ')
+          VERSION="${VERSION_SPACES// /}"  # Remove spaces
+          echo "GEN_VERSION=$VERSION" >> $GITHUB_ENV  # Set environment variable
+          echo "Version: $VERSION"  # Output for confirmation
+
+      - name: Save version
+        id: save-version
+        run: |
+          echo "GEN_VERSION=$GEN_VERSION" >> $GITHUB_OUTPUT  # Set job output
+          echo "Saved version: $GEN_VERSION"  # Correct output
+
+      - name: Debug Output
+        run: |
+          echo "Debug: Checking GEN_VERSION output..."
+          echo "GEN_VERSION: ${{ steps.save-version.outputs.GEN_VERSION }}"
+          echo "Environment variable VERSION: $GEN_VERSION"
+
+  build-push:
+    name: build and push
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: https://registry.thorge-engelmann.de/v2
+          username: ${{ vars.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
+
+      - name: Debug Output for Build and Push
+        run: |
+          echo "Debug: Current version for Docker tag..."
+          echo "Using version: ${{ needs.install.outputs.version }}"
+
+      - name: Build and Push Docker image PubFe
+        uses: docker/build-push-action@v6
+        with:
+          file: ./frontend/pubfe/Dockerfile
+          push: true
+          tags: |
+            registry.thorge-engelmann.de/window_quardian_pubfe:${{ needs.install.outputs.version }}
+            registry.thorge-engelmann.de/window_quardian_pubfe:latest
+
+      - name: Build and Push Docker image for PubApi
+        uses: docker/build-push-action@v6
+        with:
+          context: ./projects
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            registry.thorge-engelmann.de/window_quardian_pubapi:${{ needs.install.outputs.version }}
+            registry.thorge-engelmann.de/window_quardian_pubapi:latest
