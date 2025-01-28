@@ -8,7 +8,7 @@
               { "type": "refactor", "release": "patch" },
               { "type": "style", "release": "patch" }
             ],
-    }
+    },
     "@semantic-release/release-notes-generator",
     "@semantic-release/github",
     "@semantic-release/git"
