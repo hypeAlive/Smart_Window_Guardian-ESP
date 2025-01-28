@@ -79,6 +79,7 @@ jobs:
       - name: Build and Push Docker image PubFe
         uses: docker/build-push-action@v6
         with:
+          context: ./frontend/pubfe
           file: ./frontend/pubfe/Dockerfile
           push: true
           tags: |
@@ -88,6 +89,7 @@ jobs:
       - name: Build and Push Docker image for PubApi
         uses: docker/build-push-action@v6
         with:
+          context: ./backend
           file: ./backend/Dockerfile
           push: true
           tags: |
