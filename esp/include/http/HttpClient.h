@@ -11,6 +11,7 @@
 class HttpClient {
 private:
     static Logger logger;
+    static bool fetch(const std::string& endpoint, cJSON* json);
 public:
     static void registerEsp(const std::string& ip);
     static void sendSaveState();
