@@ -67,8 +67,16 @@ void HttpClient::sendSaveState() {
 void HttpClient::sendState() {
     cJSON *json = buildJsonObject();
     if (json == nullptr) return;
-
     fetch("/esp/state", json);
+}
+
+void HttpClient::sendPing() {
+    cJSON* json = cJSON_CreateObject();
+    if (!cJSON_AddStringToObject(json, "id", Config::getInstance().getUniqueId().c_str())) {
+        cJSON_Delete(json);
+        return;
+    }
+    fetch("/esp/ping", json);
 }
 
 bool HttpClient::fetch(const std::string& endpoint, cJSON* json) {

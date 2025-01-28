@@ -59,6 +59,7 @@ void http_perform_as_stream_reader(void)
     esp_http_client_close(client);
 }
 
+
 extern "C" {
 void app_main() {
     if (!SpiffsManager::getInstance().init()) {
@@ -96,7 +97,8 @@ void app_main() {
     HttpClient::registerEsp(wifiManager.getIp());
 
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        vTaskDelay(pdMS_TO_TICKS(60000));
+        HttpClient::sendPing();
     }
 
 }

@@ -16,6 +16,7 @@ public:
     static void registerEsp(const std::string& ip);
     static void sendSaveState();
     static void sendState();
+    static void sendPing();
 
 };
 
