@@ -51,7 +51,7 @@ router.post('/state', (req, res) => {
 });
 
 router.post('/save-state', (req, res) => {
-    const { id, saveState } = req.body;
+    const { id, saveState, state } = req.body;
 
     if (!id || saveState === undefined) {
         return res.status(400).json({ error: 'ID und saveState sind erforderlich!' });
@@ -62,7 +62,7 @@ router.post('/save-state', (req, res) => {
     }
 
     const data = dataMap.get(id);
-    dataMap.set(id, { ...data, saveState: saveState });
+    dataMap.set(id, { ...data, saveState: saveState, state: state });
     res.status(200).json({ message: 'SaveState erfolgreich aktualisiert!', data: { id, saveState } });
 });
 

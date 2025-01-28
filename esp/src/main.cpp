@@ -93,6 +93,8 @@ void app_main() {
         esp_restart();
     }
 
+    HttpClient::registerEsp(wifiManager.getIp());
+
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(10000));
     }

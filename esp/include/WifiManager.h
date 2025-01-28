@@ -15,7 +15,7 @@
  */
 class WiFiManager : protected Logger {
 public:
-    WiFiManager() : Logger("WiFiManager") {init();}
+    WiFiManager() : Logger("WiFiManager"), ipAddress("") {init();}
     ~WiFiManager() override;
 
     /**
@@ -34,11 +34,16 @@ public:
      */
     bool isConnected() const;
 
+    std::string getIp() const {
+        return ipAddress;
+    }
+
 private:
     void eventHandler(esp_event_base_t event_base, int32_t event_id, void* event_data) const;
 
     static EventGroupHandle_t wifi_event_group;
     static const int WIFI_CONNECTED_BIT = BIT0;
+    mutable std::string ipAddress;
 
     void init();
 };

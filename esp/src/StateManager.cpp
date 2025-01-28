@@ -1,6 +1,7 @@
 #include "StateManager.h"
 #include "nvs.h"
 #include "esp_task_wdt.h"
+#include "http/HttpClient.h"
 
 #include <algorithm>
 #include <unordered_set>
@@ -236,6 +237,8 @@ void StateManager::deleteSetup() {
 
     currentState = State::INITIALIZED;
 
+    HttpClient::sendState();
+
     logi("StateManager reset complete.");
 }
 
@@ -265,6 +268,7 @@ void StateManager::evaluationTask() {
             currentSaveState = newSaveState;
         }
 
+        HttpClient::sendSaveState();
         logi("Updated current save state. %s", sensorStateToString(currentSaveState->getState()));
     }
 

@@ -36,13 +36,24 @@ public:
         return wifiPassword;
     }
 
+    const std::string& getUniqueId() const {
+        return uniqueId;
+    }
+
+    const std::string& getPublicApiUrl() const {
+        return publicApiUrl;
+    }
+
 private:
     Config()
-    :  wifiSsid(WIFI_SSID), wifiPassword(WIFI_PASSWORD) {
+    :  wifiSsid(WIFI_SSID), wifiPassword(WIFI_PASSWORD),
+    uniqueId(ESP_UNIQUE_ID), publicApiUrl(PUBLIC_API_URL) {
     }
 
     std::string wifiSsid;
     std::string wifiPassword;
+    std::string uniqueId;
+    std::string publicApiUrl;
 
     Config(const Config&) = delete;
     Config& operator=(const Config&) = delete;

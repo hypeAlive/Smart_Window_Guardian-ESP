@@ -81,7 +81,10 @@ void WiFiManager::eventHandler(esp_event_base_t event_base, int32_t event_id, vo
         }
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
-        logi("Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        char ipStr[16];
+        snprintf(ipStr, sizeof(ipStr), IPSTR, IP2STR(&event->ip_info.ip));
+        logi("Got IP: %s", ipStr);
+        ipAddress = std::string(ipStr);
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
