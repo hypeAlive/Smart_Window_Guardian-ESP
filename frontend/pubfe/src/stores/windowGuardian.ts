@@ -61,7 +61,7 @@ export const useWindowGuardianStore = defineStore("windowGuardian", {
         },
 
         // Startet die periodische HTTP-Abfrage
-        startFetching(intervalMs: number = 15000) {
+        startFetching(intervalMs: number = 3000) {
             if (this.intervalId !== null) {
                 console.warn("Intervall ist bereits aktiv.");
                 return;

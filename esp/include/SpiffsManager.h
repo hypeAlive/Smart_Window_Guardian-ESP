@@ -15,7 +15,7 @@ public:
 
     bool init();
 
-    std::unique_ptr<std::string> getFileContent(const std::string& filePath);
+    std::string getFileContent(const std::string& filePath);
 
 private:
 

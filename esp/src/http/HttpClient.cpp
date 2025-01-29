@@ -1,12 +1,45 @@
 #include "http/HttpClient.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include <Config.h>
 #include <optional>
 #include <StateManager.h>
+#include <cstring>
+#include "esp_http_client.h"
 
 Logger HttpClient::logger("HttpClient");
 
 extern const unsigned char nicolasfritz_cert[] asm("_binary_cert_pem_start");
+
+struct FetchParams {
+    std::string endpoint;
+    cJSON* json;
+};
+
+// Statische Task-Funktion
+static void fetchTask(void* params) {
+    FetchParams* fetchParams = static_cast<FetchParams*>(params);
+    if (fetchParams == nullptr) {
+        vTaskDelete(NULL);
+        return;
+    }
+
+    bool result = HttpClient::fetch(fetchParams->endpoint, fetchParams->json);
+
+    if (result) {
+        HttpClient::logger.logi("HTTP-Anfrage erfolgreich in Task.");
+    } else {
+        HttpClient::logger.loge("HTTP-Anfrage fehlgeschlagen in Task.");
+    }
+
+    // Speicher freigeben
+    delete fetchParams;
+
+    vTaskDelete(NULL); // Task beenden
+}
+
+
 
 cJSON* buildJsonObject(const std::optional<std::string>& ip = std::nullopt) {
     cJSON* json = cJSON_CreateObject();
@@ -57,19 +90,19 @@ void HttpClient::registerEsp(const std::string& ip) {
     cJSON *json = buildJsonObject(ip);
     if (json == nullptr) return;
 
-    fetch("/esp/register", json);
+    fetchAsync("/esp/register", json);
 }
 
 void HttpClient::sendSaveState() {
     cJSON *json = buildJsonObject();
     if (json == nullptr) return;
-    fetch("/esp/save-state", json);
+    fetchAsync("/esp/save-state", json);
 }
 
 void HttpClient::sendState() {
     cJSON *json = buildJsonObject();
     if (json == nullptr) return;
-    fetch("/esp/state", json);
+    fetchAsync("/esp/state", json);
 }
 
 void HttpClient::sendPing() {
@@ -78,7 +111,7 @@ void HttpClient::sendPing() {
         cJSON_Delete(json);
         return;
     }
-    fetch("/esp/ping", json);
+    fetchAsync("/esp/ping", json);
 }
 
 bool HttpClient::fetch(const std::string& endpoint, cJSON* json) {
@@ -132,5 +165,31 @@ bool HttpClient::fetch(const std::string& endpoint, cJSON* json) {
     free(jsonString);
     return true;
 }
+
+void HttpClient::fetchAsync(const std::string& endpoint, cJSON* json) {
+    // Speicher für die Parameter allozieren
+    FetchParams* params = new FetchParams{
+        .endpoint = endpoint,
+        .json = json
+    };
+
+    // Task erstellen
+    BaseType_t result = xTaskCreate(
+        fetchTask,            // Task-Funktion
+        "FetchTask",          // Name der Task (für Debugging)
+        4096,                 // Stackgröße in Bytes (kann angepasst werden)
+        params,               // Parameter an die Task
+        tskIDLE_PRIORITY + 1, // Priorität der Task
+        NULL                  // Handle der Task (optional)
+    );
+
+    if (result != pdPASS) {
+        logger.loge("Fehler beim Erstellen der Fetch-Task");
+        delete params;
+        // Optional: Weitere Fehlerbehandlung
+    }
+}
+
+
 
 

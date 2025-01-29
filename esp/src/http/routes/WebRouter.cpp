@@ -14,9 +14,9 @@ namespace {
                     uri = "/index.html";
                 }
 
-                std::unique_ptr<std::string> fileContent = SpiffsManager::getInstance().getFileContent(uri);
+                std::string fileContent = SpiffsManager::getInstance().getFileContent(uri);
 
-                if (!fileContent) {
+                if (fileContent.empty()) {
                     httpd_resp_send_404(req);
                     return ESP_FAIL;
                 }
@@ -33,7 +33,7 @@ namespace {
                     httpd_resp_set_type(req, "application/octet-stream");
                 }
 
-                httpd_resp_send(req, fileContent->c_str(), static_cast<ssize_t>(fileContent->size()));
+                httpd_resp_send(req, fileContent.c_str(), fileContent.size());
                 return ESP_OK;
             });
         }

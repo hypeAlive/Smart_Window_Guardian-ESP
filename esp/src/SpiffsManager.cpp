@@ -1,4 +1,8 @@
 #include "SpiffsManager.h"
+
+#include <fstream>
+#include <memory>
+#include <string>
 #include "esp_spiffs.h"
 #include <functional>
 
@@ -7,7 +11,7 @@ bool SpiffsManager::init() {
 
     esp_vfs_spiffs_conf_t conf = {
         .base_path = "/spiffs",
-        .partition_label = NULL,
+        .partition_label = nullptr,
         .max_files = 5,
         .format_if_mount_failed = false
     };
@@ -15,59 +19,59 @@ bool SpiffsManager::init() {
     esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
     if (ret != ESP_OK) {
-        if (ret == ESP_FAIL) {
-          loge("Failed to mount or format filesystem");
-        } else if (ret == ESP_ERR_NOT_FOUND) {
-          loge("Failed to find SPIFFS partition");
-        } else {
-          loge("Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        switch (ret) {
+            case ESP_FAIL:
+                loge("Failed to mount or format filesystem");
+                break;
+            case ESP_ERR_NOT_FOUND:
+                loge("Failed to find SPIFFS partition");
+                break;
+            default:
+                loge("Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+                break;
         }
         return false;
     }
 
     size_t total = 0, used = 0;
-    ret = esp_spiffs_info(NULL, &total, &used);
+    ret = esp_spiffs_info(nullptr, &total, &used);
     if (ret != ESP_OK) {
         loge("Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
     } else {
-        loge("Partition size: total: %d, used: %d", total, used);
+        logi("Partition size: total: %zu, used: %zu", total, used);
     }
 
     return true;
 }
 
-std::unique_ptr<std::string> SpiffsManager::getFileContent(const std::string& filePath) {
-    FILE* file = fopen(("/spiffs" + filePath).c_str(), "r");
-    if (!file) {
+std::string SpiffsManager::getFileContent(const std::string& filePath) {
+    std::string fullPath = "/spiffs" + filePath;
+    logi("Opening file: %s", fullPath.c_str());
+
+    std::ifstream file(fullPath, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
         loge("Die Datei '%s' konnte nicht geöffnet werden!", filePath.c_str());
-        return nullptr;
+        return {};
     }
 
-    fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
-    if (fileSize == 0) {
-        fclose(file);
-        loge("Die Datei '%s' ist leer!", filePath.c_str());
-        return nullptr;
+    // Lesen des Inhalts in einen String
+    std::string content;
+    content.reserve(1024); // Reserviere initial 1KB, anpassen je nach erwartetem Dateigröße
+
+    file.seekg(0, std::ios::end);
+    std::streamsize size = file.tellg();
+    if (size <= 0) {
+        loge("Die Datei '%s' ist leer oder konnte nicht gelesen werden!", filePath.c_str());
+        return {};
     }
-    rewind(file);
+    file.seekg(0, std::ios::beg);
 
-    char* buffer = (char*)malloc(fileSize + 1);
-    if (!buffer) {
-        fclose(file);
-        loge("Speicher für die Datei '%s' konnte nicht reserviert werden!", filePath.c_str());
-        return nullptr;
+    content.resize(static_cast<size_t>(size));
+    if (!file.read(&content[0], size)) {
+        loge("Fehler beim Lesen der Datei '%s'", filePath.c_str());
+        return {};
     }
-
-    fread(buffer, 1, fileSize, file);
-    buffer[fileSize] = '\0';
-
-    std::unique_ptr<std::string> fileContent = std::make_unique<std::string>(buffer);
-
-    free(buffer);
-    fclose(file);
 
     logi("Die Datei '%s' wurde erfolgreich gelesen.", filePath.c_str());
-    return fileContent;
+    return content;
 }
-
