@@ -1,85 +1,36 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import CardComponent from "@/components/CardComponent.vue";
+import IconWindowMid from "@/components/icons/IconWindowMid.vue";
+import IconWindowClosed from "@/components/icons/IconWindowClosed.vue";
+import IconWindowOpen from "@/components/icons/IconWindowOpen.vue";
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+  <div class="bg-gray-100 dark:bg-gray-900 text-black dark:text-white flex flex-col items-center justify-center min-h-screen space-y-16 px-6 sm:px-8 lg:px-12">
+    <!-- Header -->
+    <div class="text-center space-y-4">
+      <h1 class="text-4xl font-extrabold tracking-tight">Window Guardian</h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
+        Behalten Sie den Überblick über den Zustand all Ihrer Fenster – für mehr Sicherheit und ein gutes Gefühl, egal wo Sie sind.
+      </p>
     </div>
-  </header>
 
-  <RouterView />
+    <!-- Grid mit Card-Komponenten -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
+      <CardComponent :icon="IconWindowMid" />
+      <CardComponent :icon="IconWindowClosed" />
+      <CardComponent :icon="IconWindowOpen" />
+    </div>
+
+    <!-- Beschreibung und Einrichtung -->
+    <div class="text-center space-y-6">
+      <h2 class="text-2xl font-semibold tracking-normal">Einrichtung Ihres Window Guardians</h2>
+      <p class="text-md text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto">
+        Verbinden Sie Ihren <span class="font-semibold">Window Guardian</span> mit dem Internet und konfigurieren Sie ihn bequem hier in dieser Anwendung.
+      </p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
 </style>
