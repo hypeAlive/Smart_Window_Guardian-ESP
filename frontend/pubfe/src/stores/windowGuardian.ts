@@ -26,7 +26,7 @@ export const useWindowGuardianStore = defineStore("windowGuardian", {
         // HTTP-Abfrage für Fensterzustände
         async fetchWindowStates() {
             try {
-                const response = await axios.get("http://localhost:3000/api/esp");
+                const response = await axios.get("https://window.nicolasfritz.dev/api/esp");
                 this.windowStates = response.data as WindowGuardian[];
                 console.log("Fensterzustände erfolgreich geladen:", this.windowStates);
             } catch (error) {
@@ -37,7 +37,7 @@ export const useWindowGuardianStore = defineStore("windowGuardian", {
         // Abfrage für IPs machen und sie mit windowStates vergleichen
         async fetchIpsAndCheck() {
             try {
-                const response = await axios.get("http://localhost:3000/api/esp/ips");
+                const response = await axios.get("https://window.nicolasfritz.dev/api/esp/ips");
                 const ipsFromApi: string[] = response.data;
 
                 const existingIps = this.windowStates.map((window) => window.ip);

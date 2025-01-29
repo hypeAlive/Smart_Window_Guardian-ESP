@@ -6,6 +6,8 @@
 
 Logger HttpClient::logger("HttpClient");
 
+extern const unsigned char nicolasfritz_cert[] asm("_binary_cert_pem_start");
+
 cJSON* buildJsonObject(const std::optional<std::string>& ip = std::nullopt) {
     cJSON* json = cJSON_CreateObject();
     if (json == nullptr) {
@@ -96,6 +98,7 @@ bool HttpClient::fetch(const std::string& endpoint, cJSON* json) {
 
     esp_http_client_config_t httpConf = {
         .url = fullUrl.c_str(),
+        .cert_pem = (const char *)nicolasfritz_cert,
         .method = HTTP_METHOD_POST,
         .timeout_ms = 5000,
     };
