@@ -3,6 +3,32 @@ import CardComponent from "@/components/CardComponent.vue";
 import IconWindowMid from "@/components/icons/IconWindowMid.vue";
 import IconWindowClosed from "@/components/icons/IconWindowClosed.vue";
 import IconWindowOpen from "@/components/icons/IconWindowOpen.vue";
+import { useWindowGuardianStore } from "@/stores/windowGuardian";
+import { onMounted, onBeforeUnmount } from "vue";
+
+const store = useWindowGuardianStore();
+
+const getIcon = (state: string) => {
+  switch (state) {
+    case "ON":
+      return IconWindowOpen;
+    case "OFF":
+      return IconWindowClosed;
+    case "MID":
+      return IconWindowMid;
+    default:
+      return null;
+  }
+};
+
+onMounted(() => {
+  store.startFetching(10000);
+});
+
+onBeforeUnmount(() => {
+  store.stopFetching();
+});
+
 </script>
 
 <template>
@@ -17,9 +43,21 @@ import IconWindowOpen from "@/components/icons/IconWindowOpen.vue";
 
     <!-- Grid mit Card-Komponenten -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
-      <CardComponent :icon="IconWindowMid" />
-      <CardComponent :icon="IconWindowClosed" />
-      <CardComponent :icon="IconWindowOpen" />
+      <CardComponent
+          v-for="(state, index) in store.windowStates"
+          :key="index"
+          :icon="getIcon(state.saveState)"
+          :name="state.id"
+          :ip="state.ip"
+          :state="state.saveState"
+      />
+      <CardComponent
+          v-for="(state, index) in store.ips"
+          :key="index"
+          :icon="null"
+          name="Window"
+          :ip="state"
+      />
     </div>
 
     <!-- Beschreibung und Einrichtung -->

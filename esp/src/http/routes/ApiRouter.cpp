@@ -51,6 +51,7 @@ namespace {
 
             apiRouter.addRoute("/?", HTTP_GET, [](httpd_req_t *req) {
                 httpd_resp_set_type(req, "text/html");
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
                 httpd_resp_send(req, "Window Guardian ESP API", HTTPD_RESP_USE_STRLEN);
                 return ESP_OK;
               });
@@ -60,6 +61,7 @@ namespace {
                 const char *state_str = stateToString(state);
                 char json_response[100];
                 snprintf(json_response, sizeof(json_response), R"({"state": "%s"})", state_str);
+                httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
                 httpd_resp_set_type(req, "application/json");
                 httpd_resp_send(req, json_response, HTTPD_RESP_USE_STRLEN);
                 return ESP_OK;

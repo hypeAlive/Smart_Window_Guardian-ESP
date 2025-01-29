@@ -1,5 +1,6 @@
 <template>
   <div
+      @click="navigate"
       class="flex items-center justify-between p-6 bg-gradient-to-r from-white to-gray-100 dark:from-gray-800 dark:to-gray-700 shadow-2xl rounded-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
   >
     <!-- Linker Bereich: Icon und Text -->
@@ -20,10 +21,10 @@
           {{ name }}
         </h2>
         <p
-            :class="state === 'Geöffnet' ? 'text-red-500' : 'text-green-500'"
+            :class="getStateDisplay(state).class"
             class="font-medium text-sm"
         >
-          {{ state }}
+          {{ getStateDisplay(state).text }}
         </p>
       </div>
     </div>
@@ -54,11 +55,12 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import type {WindowSaveStates} from "@/stores/windowGuardian.ts";
 
 export default defineComponent({
   props: {
     icon: {
-      type: Object, // Icon wird als importierter Object-Type übergeben
+      type: [Object, null],
       required: true,
     },
     name: {
@@ -67,12 +69,29 @@ export default defineComponent({
     },
     state: {
       type: String,
-      default: "Geschlossen",
+      default: "UNKNOWN" as WindowSaveStates,
     },
+    ip: {
+      type: String,
+      required: true
+    }
   },
   methods: {
     navigate() {
-      this.$router.push("/details");
+      window.location.href = "http://" + this.ip;
+    },
+    getStateDisplay(state: string) {
+      switch (state) {
+        case "ON":
+          return { class: "text-green-500", text: "Geöffnet" };
+        case "OFF":
+          return { class: "text-red-500", text: "Geschlossen" };
+        case "MID":
+          return { class: "text-yellow-500", text: "Gekippt" };
+        case "UNKNOWN":
+        default:
+          return { class: "text-yellow-500", text: "Setup benötigt" };
+      }
     },
   },
 });

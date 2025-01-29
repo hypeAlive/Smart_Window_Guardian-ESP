@@ -2,11 +2,18 @@ var express = require('express');
 var router = express.Router();
 
 const dataMap = new Map();
+const testData = {
+    ip: '127.0.0.1',
+    state: 'UNKNOWN',
+    saveState: 'UNKNOWN',
+    timestamp: Date.now(),
+};
 
 setInterval(() => {
     const now = Date.now();
     dataMap.forEach((value, id) => {
         if (value.state === 'SETUP' && now - value.timestamp > 2 * 60 * 1000) {
+            if(id === 'test') return;
             console.log(`Setze ID ${id} von SETUP auf UNKNOWN (zu lange inaktiv)`);
             dataMap.set(id, { ...value, state: 'UNKNOWN' });
         }
