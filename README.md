@@ -131,7 +131,7 @@ untitled/
 ├── 🤖 esp/                     # ESP32
 │   │
 │   ├── 📂 data/                # SPIFFS-Dateisystem für Frontend-Assets
-│   ├── 💻 src/                 # Quellcode für die ESP32-Firmware
+│   ├── 💻 src/                 # Quellcode
 │   │   ├── 🌐 http/            # HTTP-Kommunikationsschicht
 │   │   │   ├── 🛣️ routes/      # API-Routen Definitionen
 │   │   │   │   ├── ApiRouter.cpp    # API für Sensor-Status und Steuerung
