@@ -125,7 +125,8 @@ untitled/
 ├── 🔌 backend/                 # Express.js Backend-Server
 │   │
 │   ├── 🚀 app.js               # Haupteinstiegspunkt der Anwendung
-│   └── 🛣️ routes/              # API-Routen für Datenspeicherung und -übertragung: ESP → Server → Frontend
+│   └── 🛣️ routes/              # Routen für Speicherung und Übertragung: 
+│                               # ESP → Server → Frontend
 │
 ├── 🤖 esp/                     # ESP32
 │   │
