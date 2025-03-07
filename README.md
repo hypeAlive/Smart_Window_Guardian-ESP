@@ -6,11 +6,16 @@
     <a href="https://www.espressif.com/"><img src="https://img.shields.io/badge/ESP8266-Supported-blue.svg" alt="ESP8266 Support"></a>
     <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/Vue-3.5.13-brightgreen.svg" alt="Vue 3"></a>
     <a href="https://expressjs.com/"><img src="https://img.shields.io/badge/Express-4.16-orange.svg" alt="Express JS"></a>
+    <a href="https://window.nicolasfritz.dev/"><img src="https://img.shields.io/badge/Demo-Live-success.svg" alt="Live Demo"></a>
   </p>
 
   <blockquote>
     <em><strong>Dein Fenster im Blick. Überall.</strong></em>
   </blockquote>
+
+  <p>
+    <a href="https://window.nicolasfritz.dev/">🔗 Live Demo ansehen</a>
+  </p>
 </div>
 
 ---
