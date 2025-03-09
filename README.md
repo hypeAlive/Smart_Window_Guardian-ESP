@@ -179,7 +179,7 @@ untitled/
 
 ### 🔒 LET'S GUARD THOSE WINDOWS! 🔒
 
-<i>Entwickelt mit ❤️</i>
+<i>Entwickelt von Nicolas Fritz</i>
 
 </div>
 
